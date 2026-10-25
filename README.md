@@ -23,15 +23,15 @@ proxy (`127.0.0.1:1080`) that only explicitly configured apps use.
 
 ## Install
 
-The Omarchy shell only discovers plugins under `~/.config/omarchy/plugins/`, so
-install by cloning and symlinking:
+Managed by Omarchy as a git clone, so installs and updates come from `main`:
 
 ```bash
-git clone git@github.com:UnikZ/adguard-vpn-omarchy-applet.git
-ln -s "$PWD/adguard-vpn-omarchy-applet" ~/.config/omarchy/plugins/unikz.adguardvpn
-omarchy plugin enable unikz.adguardvpn
-omarchy restart shell
+omarchy plugin add git@github.com:UnikZ/adguard-vpn-omarchy-applet.git --enable --yes
+omarchy bar move unikz.adguardvpn --section right   # optional placement
 ```
+
+Update to the latest `main`: `omarchy plugin update unikz.adguardvpn`.
+Remove: `omarchy plugin remove unikz.adguardvpn`.
 
 Requires the AdGuard VPN CLI at `/opt/adguardvpn_cli/adguardvpn-cli`
 (override with the `ADGUARDVPN_CLI` env var) and `wl-copy` for copy actions.
@@ -49,13 +49,20 @@ omarchy-shell unikz.adguardvpn open     # open the panel
 
 ## Development
 
-Edits here do **not** hot-reload while the plugin is installed via symlink —
-Quickshell's change watcher does not follow the symlinked directory. Apply
-changes with:
+The installed plugin at `~/.config/omarchy/plugins/unikz.adguardvpn` is a
+git-managed clone — treat it as **production**: the bar runs whatever is on
+`main`. Develop in a separate checkout and deploy by push + update:
 
 ```bash
-omarchy restart shell
+git clone git@github.com:UnikZ/adguard-vpn-omarchy-applet.git
+# ...edit, commit, push...
+omarchy plugin update unikz.adguardvpn   # pulls main into the installed copy
 ```
+
+For rapid iteration against the live bar, temporarily swap production for a
+symlink to the dev checkout (swap back with `omarchy plugin remove` +
+`omarchy plugin add ...` afterwards). Note the symlink itself does not
+hot-reload — apply each dev iteration with `omarchy restart shell`.
 
 Plugin load errors land in the journal:
 
