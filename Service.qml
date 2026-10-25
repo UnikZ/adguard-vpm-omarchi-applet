@@ -30,6 +30,11 @@ Item {
   property var locations: [] // [{iso, country, city, ping}] sorted by ping
   property bool locationsRefreshing: false
 
+  // The CLI segfaults intermittently on list-locations; retrying immediately
+  // just stacks coredumps. Back off exponentially after failures.
+  property int _locationsFailures: 0
+  property double _locationsLastFailureMs: 0
+
   // SOCKS-mode truth: `status` can report Disconnected in steady state while
   // the proxy still accepts connections, so probe the listener and let a live
   // socket outrank a stale status line.
@@ -193,12 +198,26 @@ Item {
   // Ping estimates come from live measurement, so fetch on panel open and
   // explicit refresh only — never on the periodic status poll.
   function refreshLocations() {
-    if (!installed || locationsProcess.running) return
+    if (!installed || locationsProcess.running || locationsCooldownActive()) return
     _locationsOutput = ""
     _locationsError = ""
     locationsRefreshing = true
     locationsProcess.command = [cliPath, "list-locations"]
     locationsProcess.running = true
+  }
+
+  function locationsCooldownActive() {
+    if (_locationsFailures === 0) return false
+    var cooldown = Math.min(300000, 60000 * Math.pow(2, _locationsFailures - 1))
+    return Date.now() - _locationsLastFailureMs < cooldown
+  }
+
+  function noteLocationsResult(ok) {
+    if (ok) _locationsFailures = 0
+    else {
+      _locationsFailures += 1
+      _locationsLastFailureMs = Date.now()
+    }
   }
 
   function disconnect() {
@@ -308,8 +327,10 @@ Item {
       var stderr = String(locationsStderr.text || root._locationsError || "")
       if (exitCode === 0) {
         root.locations = Model.parseLocations(stdout)
+        root.noteLocationsResult(root.locations.length > 0)
         if (root.locations.length === 0) root.lastError = "No locations parsed"
       } else {
+        root.noteLocationsResult(false)
         root.lastError = Model.elide(stderr || stdout || "list-locations failed")
       }
     }
