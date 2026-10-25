@@ -53,11 +53,13 @@ Item {
       startX: root.width * 0.5 - root.waveSide * root.width * 0.15
       startY: root.waveBaseY - root.waveSide * root.width * 0.15
       PathArc {
+        // shortcut: PathArc.DirectionClockwise resolves undefined in this
+        // Quickshell build (journal warns); 0 is its numeric value.
+        direction: 0
         x: root.width * 0.5 + root.waveSide * root.width * 0.15
         y: root.waveBaseY - root.waveSide * root.width * 0.15
         radiusX: root.width * 0.15
         radiusY: root.width * 0.15
-        direction: PathArc.DirectionClockwise
       }
     }
 
@@ -69,11 +71,11 @@ Item {
       startX: root.width * 0.5 - root.waveSide * root.width * 0.28
       startY: root.waveBaseY - root.waveSide * root.width * 0.28
       PathArc {
+        direction: 0
         x: root.width * 0.5 + root.waveSide * root.width * 0.28
         y: root.waveBaseY - root.waveSide * root.width * 0.28
         radiusX: root.width * 0.28
         radiusY: root.width * 0.28
-        direction: PathArc.DirectionClockwise
       }
     }
   }
