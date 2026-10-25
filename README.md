@@ -16,6 +16,10 @@ proxy (`127.0.0.1:1080`) that only explicitly configured apps use.
   click a city (or the pinned "Fastest" row / press `f`) to connect; pings
   are live-measured, so the list refreshes on panel open and `r`, not on
   the status poll
+- Favorites: star a city in the list (star button on the row, separate from
+  the connect click); favorites pin below the "Fastest" row, ping-ordered,
+  stored in `~/.local/state/omarchy/adguardvpn-favorites.json`
+  (`XDG_STATE_HOME`-aware) and kept even when a city leaves the list
 - Click-to-copy rows for the proxy URI and a curl test command
 - Optimistic toggle: the switch reacts instantly, status polls catch up
   (default every 10 s, configurable via `refreshIntervalSec` in the manifest)

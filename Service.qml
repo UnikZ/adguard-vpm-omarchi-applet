@@ -34,6 +34,13 @@ Item {
   property int _locationsFailures: 0
   property double _locationsLastFailureMs: 0
 
+  // Favorited cities, plugin-owned state. Follows the first-party convention
+  // (clipboard, agents): ~/.local/state/omarchy/, XDG_STATE_HOME-aware.
+  readonly property string favoritesPath: (Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state") + "/omarchy/adguardvpn-favorites.json"
+  property var favorites: [] // stored city strings, in add order
+  readonly property var favoriteLocations: Model.favoriteLocations(favorites, locations)
+  readonly property var catalogLocations: Model.nonFavoriteLocations(favorites, locations)
+
   // SOCKS-mode truth: `status` can report Disconnected in steady state while
   // the proxy still accepts connections, so probe the listener and let a live
   // socket outrank a stale status line.
@@ -84,6 +91,26 @@ Item {
     var text = String(value || "")
     if (text === "") return
     Quickshell.execDetached(["bash", "-c", "printf %s " + Util.shellQuote(text) + " | wl-copy"])
+  }
+
+  function isFavorite(city) {
+    return Model.containsCity(favorites, city)
+  }
+
+  function toggleFavorite(city) {
+    var target = String(city || "")
+    if (target === "") return
+    var next = favorites.slice()
+    for (var i = 0; i < next.length; i++) {
+      if (Model.sameCity(next[i], target)) {
+        next.splice(i, 1)
+        break
+      }
+    }
+    if (next.length === favorites.length) next.push(target)
+    favorites = next
+    favoritesFile.setText(JSON.stringify(next))
+    favoritesFile.writeAdapter()
   }
 
   function refresh() {
@@ -282,6 +309,24 @@ Item {
     interval: 2200
     repeat: false
     onTriggered: root.actionStatus = ""
+  }
+
+  FileView {
+    id: favoritesFile
+    path: root.favoritesPath
+    watchChanges: true
+    atomicWrites: true
+    printErrors: false
+    onLoaded: {
+      try {
+        root.favorites = JSON.parse(text()).filter(function (v) { return typeof v === "string" })
+      } catch (e) {
+        root.favorites = []
+      }
+    }
+    onLoadFailed: root.favorites = []
+    onSaveFailed: root.lastError = "Could not save favorites"
+    onFileChanged: reload()
   }
 
   Process {

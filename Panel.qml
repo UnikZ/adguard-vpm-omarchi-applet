@@ -219,17 +219,18 @@ Panel {
               country: "Lowest ping estimate"
               ping: -1
               isActive: false
+              showStar: false
               enabled: !vpn.busy
-              glyph: ""
               onChoose: vpn.connectFastest()
             }
 
             Column {
+              visible: vpn.favoriteLocations.length > 0
               width: parent.width
               spacing: Style.space(6)
 
               Repeater {
-                model: vpn.locations
+                model: vpn.favoriteLocations
 
                 LocationRow {
                   required property var modelData
@@ -238,8 +239,32 @@ Panel {
                   country: modelData.country
                   ping: modelData.ping
                   isActive: root.isActiveLocation(modelData)
+                  starred: true
                   enabled: !vpn.busy
                   onChoose: vpn.connectTo(modelData.city)
+                  onToggleStar: vpn.toggleFavorite(modelData.city)
+                }
+              }
+            }
+
+            Column {
+              width: parent.width
+              spacing: Style.space(6)
+
+              Repeater {
+                model: vpn.catalogLocations
+
+                LocationRow {
+                  required property var modelData
+                  width: parent.width
+                  city: modelData.city
+                  country: modelData.country
+                  ping: modelData.ping
+                  isActive: root.isActiveLocation(modelData)
+                  starred: false
+                  enabled: !vpn.busy
+                  onChoose: vpn.connectTo(modelData.city)
+                  onToggleStar: vpn.toggleFavorite(modelData.city)
                 }
               }
             }
@@ -297,8 +322,10 @@ Panel {
     property string country: ""
     property int ping: -1
     property bool isActive: false
-    property string glyph: ""
+    property bool starred: false
+    property bool showStar: true
     signal choose()
+    signal toggleStar()
 
     foreground: root.foreground
 
@@ -320,13 +347,28 @@ Panel {
       anchors.rightMargin: Style.space(10)
       spacing: Style.space(8)
 
-      Text {
-        visible: locationRow.glyph !== ""
-        text: locationRow.glyph
-        color: root.foreground
-        font.family: root.fontFamily
-        font.pixelSize: Style.font.icon
+      // Star button inside the layout: beside the name, vertically
+      // centered, with its own click target so favoriting never connects.
+      Item {
+        visible: locationRow.showStar
+        implicitWidth: Style.font.icon + Style.space(4)
+        implicitHeight: Style.font.icon
         Layout.alignment: Qt.AlignVCenter
+
+        MouseArea {
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: locationRow.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+          onClicked: if (locationRow.enabled) locationRow.toggleStar()
+        }
+
+        Text {
+          anchors.centerIn: parent
+          text: locationRow.starred ? "★" : "☆"
+          color: locationRow.starred ? Commons.Color.accent : root.dim
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.icon
+        }
       }
 
       ColumnLayout {

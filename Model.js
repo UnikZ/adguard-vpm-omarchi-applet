@@ -81,6 +81,38 @@ function sameCity(a, b) {
   return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase()
 }
 
+function containsCity(cities, city) {
+  for (var i = 0; i < (cities || []).length; i++) {
+    if (sameCity(cities[i], city)) return true
+  }
+  return false
+}
+
+// Favorites render as the intersection of stored city strings with the
+// current list, in list order — which is already ping-sorted. Cities the
+// list no longer carries simply don't render; storage keeps them forever.
+function favoriteLocations(stored, locations) {
+  var wanted = {}
+  for (var i = 0; i < (stored || []).length; i++) wanted[String(stored[i] || "").trim().toLowerCase()] = true
+  var out = []
+  for (var j = 0; j < (locations || []).length; j++) {
+    if (wanted[String(locations[j].city || "").trim().toLowerCase()]) out.push(locations[j])
+  }
+  return out
+}
+
+// The catalog shows everything not pinned as a favorite, so a city appears
+// exactly once: either in the favorites block or in the list below it.
+function nonFavoriteLocations(stored, locations) {
+  var wanted = {}
+  for (var i = 0; i < (stored || []).length; i++) wanted[String(stored[i] || "").trim().toLowerCase()] = true
+  var out = []
+  for (var j = 0; j < (locations || []).length; j++) {
+    if (!wanted[String(locations[j].city || "").trim().toLowerCase()]) out.push(locations[j])
+  }
+  return out
+}
+
 // list-locations prints a fixed-width, ANSI-decorated table sorted by ping:
 //   ISO   COUNTRY              CITY                           PING ESTIMATE
 //   EE    Estonia              Tallinn                        3
@@ -108,5 +140,5 @@ function parseLocations(raw) {
 
 // Node-only export for tests; `module` is undefined under Quickshell.
 if (typeof module !== "undefined") {
-  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations, sameCity: sameCity, listenProbe: listenProbe }
+  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations, sameCity: sameCity, containsCity: containsCity, favoriteLocations: favoriteLocations, nonFavoriteLocations: nonFavoriteLocations, listenProbe: listenProbe }
 }

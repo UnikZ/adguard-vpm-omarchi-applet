@@ -72,6 +72,35 @@ test("listenProbe builds the /dev/tcp probe and rejects unsafe addresses", () =>
   assert.strictEqual(Model.listenProbe(""), null)
 })
 
+test("favoriteLocations intersects by city, keeping list (ping) order", () => {
+  const locs = [
+    { iso: "EE", country: "Estonia", city: "Tallinn", ping: 3 },
+    { iso: "LT", country: "Lithuania", city: "Vilnius", ping: 8 },
+    { iso: "JP", country: "Japan", city: "Tokyo", ping: 120 }
+  ]
+  assert.deepStrictEqual(Model.favoriteLocations(["vilnius ", "Atlantis"], locs), [locs[1]])
+  assert.deepStrictEqual(Model.favoriteLocations([], locs), [])
+  assert.deepStrictEqual(Model.favoriteLocations(["TOKYO"], locs), [locs[2]])
+})
+
+test("nonFavoriteLocations is the exact complement", () => {
+  const locs = [
+    { iso: "EE", country: "Estonia", city: "Tallinn", ping: 3 },
+    { iso: "LT", country: "Lithuania", city: "Vilnius", ping: 8 },
+    { iso: "JP", country: "Japan", city: "Tokyo", ping: 120 }
+  ]
+  const stored = ["vilnius ", "Atlantis"]
+  assert.deepStrictEqual(Model.nonFavoriteLocations(stored, locs), [locs[0], locs[2]])
+  const favs = Model.favoriteLocations(stored, locs).concat(Model.nonFavoriteLocations(stored, locs))
+  assert.deepStrictEqual(favs.sort((a, b) => a.ping - b.ping), locs)
+})
+
+test("containsCity matches like sameCity and tolerates null", () => {
+  assert.strictEqual(Model.containsCity(["VILNIUS"], " Vilnius "), true)
+  assert.strictEqual(Model.containsCity(["Vilnius"], "Tokyo"), false)
+  assert.strictEqual(Model.containsCity(null, "Tokyo"), false)
+})
+
 test("parseLocations slices the fixed-width table", () => {
   const raw = [
     "ISO   COUNTRY              CITY                           PING ESTIMATE",
