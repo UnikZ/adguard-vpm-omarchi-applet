@@ -8,20 +8,19 @@ Item {
 
   property real iconSize: Style.font.icon
   property color outlineColor: Commons.Color.foreground // shield outline
-  property color contentColor: Commons.Color.foreground // waves, dot, VPN label
-  property string fontFamily: Style.font.family
+  property color contentColor: Commons.Color.foreground // waves and dot
 
   width: iconSize * 0.92
   height: iconSize
   implicitWidth: width
   implicitHeight: height
 
-  // Geometry: outline shield, Wi-Fi waves + dot in the upper third,
-  // VPN label in the wide middle band. All coordinates relative so the
-  // icon scales from tiny bar slot to the large panel hero.
-  readonly property real waveBaseY: height * 0.42
+  // Geometry: outline shield with the Wi-Fi waves + dot optically centered
+  // in the shield body. All coordinates relative so the icon scales from
+  // tiny bar slot to the large panel hero.
+  readonly property real waveBaseY: height * 0.57
   readonly property real waveSide: 0.707 // sin/cos of 45° — half-span of each arc
-  readonly property real arcStroke: Math.max(0.9, width * 0.068)
+  readonly property real arcStroke: Math.max(0.9, width * 0.075)
 
   // AdGuard-style shield silhouette drawn natively (like the Dropbox
   // diamond) so the tiny bar slot stays crisp without SVG quirks.
@@ -51,13 +50,13 @@ Item {
       strokeColor: root.contentColor
       strokeWidth: root.arcStroke
       capStyle: ShapePath.RoundCap
-      startX: root.width * 0.5 - root.waveSide * root.width * 0.13
-      startY: root.waveBaseY - root.waveSide * root.width * 0.13
+      startX: root.width * 0.5 - root.waveSide * root.width * 0.15
+      startY: root.waveBaseY - root.waveSide * root.width * 0.15
       PathArc {
-        x: root.width * 0.5 + root.waveSide * root.width * 0.13
-        y: root.waveBaseY - root.waveSide * root.width * 0.13
-        radiusX: root.width * 0.13
-        radiusY: root.width * 0.13
+        x: root.width * 0.5 + root.waveSide * root.width * 0.15
+        y: root.waveBaseY - root.waveSide * root.width * 0.15
+        radiusX: root.width * 0.15
+        radiusY: root.width * 0.15
         direction: PathArc.DirectionClockwise
       }
     }
@@ -67,39 +66,24 @@ Item {
       strokeColor: root.contentColor
       strokeWidth: root.arcStroke
       capStyle: ShapePath.RoundCap
-      startX: root.width * 0.5 - root.waveSide * root.width * 0.25
-      startY: root.waveBaseY - root.waveSide * root.width * 0.25
+      startX: root.width * 0.5 - root.waveSide * root.width * 0.28
+      startY: root.waveBaseY - root.waveSide * root.width * 0.28
       PathArc {
-        x: root.width * 0.5 + root.waveSide * root.width * 0.25
-        y: root.waveBaseY - root.waveSide * root.width * 0.25
-        radiusX: root.width * 0.25
-        radiusY: root.width * 0.25
+        x: root.width * 0.5 + root.waveSide * root.width * 0.28
+        y: root.waveBaseY - root.waveSide * root.width * 0.28
+        radiusX: root.width * 0.28
+        radiusY: root.width * 0.28
         direction: PathArc.DirectionClockwise
       }
     }
   }
 
   Rectangle {
-    width: root.width * 0.10
+    width: root.width * 0.11
     height: width
     radius: width / 2
     color: root.contentColor
     anchors.horizontalCenter: parent.horizontalCenter
     y: root.waveBaseY - width / 2
-  }
-
-  Text {
-    text: "VPN"
-    color: root.contentColor
-    font.family: root.fontFamily
-    font.pixelSize: root.width * 0.23
-    font.bold: true
-    font.letterSpacing: root.width * 0.02
-    fontSizeMode: Text.HorizontalFit
-    minimumPixelSize: 4
-    anchors.horizontalCenter: parent.horizontalCenter
-    y: root.height * 0.52
-    width: root.width * 0.64
-    horizontalAlignment: Text.AlignHCenter
   }
 }
