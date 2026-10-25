@@ -124,7 +124,7 @@ Panel {
             id: hero
             width: parent.width
             title: "AdGuard VPN"
-            meta: !vpn.installed ? "CLI not found" : vpn.active ? (vpn.location !== "" ? vpn.location : "Connected") : "Disconnected"
+            meta: !vpn.installed ? "CLI not found" : vpn.loginRequired ? "Not logged in" : vpn.active ? (vpn.location !== "" ? vpn.location : "Connected") : "Disconnected"
             foreground: root.foreground
             fontFamily: root.fontFamily
             iconOpacity: vpn.active ? 1.0 : 0.5
@@ -138,7 +138,7 @@ Panel {
             trailingControl: Component {
               ToggleSwitch {
                 id: powerSwitch
-                visible: vpn.installed
+                visible: vpn.installed && !vpn.loginRequired
                 checked: vpn.active
                 busy: vpn.busy
                 foreground: hero.foreground
@@ -187,12 +187,12 @@ Panel {
           }
 
           PanelSeparator {
-            visible: vpn.installed
+            visible: vpn.installed && !vpn.loginRequired
             foreground: root.foreground
           }
 
           Column {
-            visible: vpn.installed
+            visible: vpn.installed && !vpn.loginRequired
             width: parent.width
             spacing: Style.space(10)
 

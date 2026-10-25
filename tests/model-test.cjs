@@ -101,6 +101,16 @@ test("containsCity matches like sameCity and tolerates null", () => {
   assert.strictEqual(Model.containsCity(null, "Tokyo"), false)
 })
 
+test("needsLogin recognizes AdGuard's login-required phrasings", () => {
+  assert.strictEqual(Model.needsLogin("You are not logged in. Please login"), true)
+  assert.strictEqual(Model.needsLogin("Error: login required"), true)
+  assert.strictEqual(Model.needsLogin("401 unauthorized"), true)
+  assert.strictEqual(Model.needsLogin("session expired"), true)
+  assert.strictEqual(Model.needsLogin("VPN is disconnected"), false)
+  assert.strictEqual(Model.needsLogin("Connected to VILNIUS in SOCKS mode"), false)
+  assert.strictEqual(Model.needsLogin(""), false)
+})
+
 test("parseLocations slices the fixed-width table", () => {
   const raw = [
     "ISO   COUNTRY              CITY                           PING ESTIMATE",

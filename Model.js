@@ -63,6 +63,12 @@ function modeLabel(mode) {
   return "—"
 }
 
+// AdGuard's login-required phrasings across CLI versions, collected from
+// dms-adguard-vpn-plugin and docker-adguardvpn-cli.
+function needsLogin(text) {
+  return /not\s+logged\s+in|login\s+required|not\s+authorized|authentication\s+required|unauthorized|session\s+expired/i.test(String(text || ""))
+}
+
 // Command that exits 0 when the SOCKS listener accepts connections, or null
 // when the address is not a safe host:port. bash /dev/tcp does the probing;
 // `timeout` is the probe's own watchdog.
@@ -144,5 +150,5 @@ function parseLocations(raw) {
 
 // Node-only export for tests; `module` is undefined under Quickshell.
 if (typeof module !== "undefined") {
-  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations, sameCity: sameCity, containsCity: containsCity, favoriteLocations: favoriteLocations, nonFavoriteLocations: nonFavoriteLocations, listenProbe: listenProbe }
+  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations, sameCity: sameCity, containsCity: containsCity, favoriteLocations: favoriteLocations, nonFavoriteLocations: nonFavoriteLocations, listenProbe: listenProbe, needsLogin: needsLogin }
 }

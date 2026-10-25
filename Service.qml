@@ -14,6 +14,7 @@ Item {
 
   property bool installed: false
   property bool running: false
+  property bool loginRequired: false
 
   // Optimistic state so the switch reacts instantly: -1 follows the real
   // state, 0/1 hold until the action's refresh catches up.
@@ -152,18 +153,35 @@ Item {
   function resetUnavailable(message) {
     running = false
     _desired = -1
+    loginRequired = false
     statusText = message
     location = ""
     warnings = []
   }
 
+  // The CLI fails with a login-required message when its session is gone;
+  // surface one honest state instead of a dead toggle and raw errors.
+  function setLoginRequired() {
+    loginRequired = true
+    running = false
+    _desired = -1
+    location = ""
+    warnings = []
+    statusText = "Not logged in"
+    lastError = "Run " + cliPath + " login in a terminal to sign in"
+  }
+
   function parseStatus(raw) {
     var parsed = Model.parseStatus(raw)
     if (!parsed.ok) {
-      resetUnavailable(parsed.message || "Status error")
-      lastError = parsed.message || "Failed to parse status"
+      if (Model.needsLogin(parsed.message)) setLoginRequired()
+      else {
+        resetUnavailable(parsed.message || "Status error")
+        lastError = parsed.message || "Failed to parse status"
+      }
       return
     }
+    loginRequired = false
     running = parsed.connected || socksListenerUp()
     // Reality caught up to the pending toggle — stop overriding.
     if (_desired !== -1 && running === (_desired === 1)) _desired = -1
@@ -348,8 +366,12 @@ Item {
       var stderr = String(statusStderr.text || root._statusError || "")
       if (exitCode === 0) root.parseStatus(stdout)
       else {
-        root.resetUnavailable("Unavailable")
-        root.lastError = Model.elide(stderr || stdout || "Status command failed")
+        var message = Model.elide(stderr || stdout || "Status command failed")
+        if (Model.needsLogin(message)) root.setLoginRequired()
+        else {
+          root.resetUnavailable("Unavailable")
+          root.lastError = message
+        }
       }
     }
   }

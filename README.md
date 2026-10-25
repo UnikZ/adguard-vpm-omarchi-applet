@@ -20,6 +20,9 @@ proxy (`127.0.0.1:1080`) that only explicitly configured apps use.
   the connect click); favorites pin below the "Fastest" row, ping-ordered,
   stored in `~/.local/state/omarchy/adguardvpn-favorites.json`
   (`XDG_STATE_HOME`-aware) and kept even when a city leaves the list
+- Honest logged-out state: when the CLI's session is gone the panel says
+  "Not logged in", hides the toggle and locations, and shows the login
+  command instead of raw errors
 - Optimistic toggle: the switch reacts instantly, status polls catch up
   (default every 10 s, configurable via `refreshIntervalSec` in the manifest)
 - SOCKS truth: in SOCKS mode a live listener probe (`/dev/tcp` connect)
