@@ -236,7 +236,10 @@ Item {
   }
 
   function locationsCooldownActive() {
-    if (_locationsFailures === 0) return false
+    // Cooldown protects a working list from crash-loop churn; an empty list
+    // has nothing to protect, and throttling it stretches a seconds-long
+    // network blip into minutes of missing locations.
+    if (_locationsFailures === 0 || locations.length === 0) return false
     var cooldown = Math.min(300000, 60000 * Math.pow(2, _locationsFailures - 1))
     return Date.now() - _locationsLastFailureMs < cooldown
   }
