@@ -87,12 +87,6 @@ Item {
     return mode === "socks" && _listenerUp && _desired !== 0
   }
 
-  function copyToClipboard(value) {
-    var text = String(value || "")
-    if (text === "") return
-    Quickshell.execDetached(["bash", "-c", "printf %s " + Util.shellQuote(text) + " | wl-copy"])
-  }
-
   function isFavorite(city) {
     return Model.containsCity(favorites, city)
   }

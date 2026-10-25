@@ -20,7 +20,6 @@ proxy (`127.0.0.1:1080`) that only explicitly configured apps use.
   the connect click); favorites pin below the "Fastest" row, ping-ordered,
   stored in `~/.local/state/omarchy/adguardvpn-favorites.json`
   (`XDG_STATE_HOME`-aware) and kept even when a city leaves the list
-- Click-to-copy rows for the proxy URI and a curl test command
 - Optimistic toggle: the switch reacts instantly, status polls catch up
   (default every 10 s, configurable via `refreshIntervalSec` in the manifest)
 - SOCKS truth: in SOCKS mode a live listener probe (`/dev/tcp` connect)
@@ -41,7 +40,7 @@ Update to the latest `main`: `omarchy plugin update unikz.adguardvpn`.
 Remove: `omarchy plugin remove unikz.adguardvpn`.
 
 Requires the AdGuard VPN CLI at `/opt/adguardvpn_cli/adguardvpn-cli`
-(override with the `ADGUARDVPN_CLI` env var) and `wl-copy` for copy actions.
+(override with the `ADGUARDVPN_CLI` env var).
 
 ## IPC
 

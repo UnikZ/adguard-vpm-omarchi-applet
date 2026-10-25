@@ -269,47 +269,6 @@ Panel {
               }
             }
           }
-
-          PanelSeparator {
-            visible: vpn.installed && root.socksMode
-            foreground: root.foreground
-          }
-
-          Column {
-            visible: vpn.installed && root.socksMode
-            width: parent.width
-            spacing: Style.space(10)
-
-            PanelSectionHeader {
-              text: "SOCKS USAGE"
-              foreground: root.foreground
-              fontFamily: root.fontFamily
-            }
-
-            Text {
-              textFormat: Text.PlainText
-              width: parent.width
-              text: "Only apps pointed at the proxy go through the VPN. Everything else stays direct."
-              color: root.dim
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-              wrapMode: Text.WordWrap
-            }
-
-            CopyRow {
-              width: parent.width
-              label: "Proxy address"
-              value: vpn.proxyUri()
-              glyph: "󰆏"
-            }
-
-            CopyRow {
-              width: parent.width
-              label: "Test in terminal"
-              value: "curl --proxy socks5h://" + vpn.proxyAddress + " https://api.ipify.org"
-              glyph: "󰛢"
-            }
-          }
         }
       }
     }
@@ -415,77 +374,6 @@ Panel {
         font.family: root.fontFamily
         font.pixelSize: Style.font.caption
         Layout.alignment: Qt.AlignVCenter
-      }
-    }
-  }
-
-  component CopyRow: CursorSurface {
-    id: copyRow
-    property string label: ""
-    property string value: ""
-    property string glyph: "󰆏"
-
-    foreground: root.foreground
-
-    implicitHeight: copyRowContent.implicitHeight + Style.spacing.rowPaddingX
-
-    MouseArea {
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: copyRow.value !== "" ? Qt.PointingHandCursor : Qt.ArrowCursor
-      enabled: copyRow.value !== ""
-      onClicked: vpn.copyToClipboard(copyRow.value)
-    }
-
-    RowLayout {
-      id: copyRowContent
-      anchors.left: parent.left
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      anchors.leftMargin: Style.space(10)
-      anchors.rightMargin: Style.space(10)
-      spacing: Style.space(8)
-
-      Text {
-        text: copyRow.glyph
-        color: root.foreground
-        font.family: root.fontFamily
-        font.pixelSize: Style.font.icon
-        Layout.alignment: Qt.AlignVCenter
-      }
-
-      ColumnLayout {
-        Layout.fillWidth: true
-        spacing: Style.space(1)
-
-        Text {
-          textFormat: Text.PlainText
-          Layout.fillWidth: true
-          text: copyRow.label
-          color: root.foreground
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.body
-          elide: Text.ElideRight
-        }
-
-        Text {
-          textFormat: Text.PlainText
-          Layout.fillWidth: true
-          text: copyRow.value
-          color: root.dim
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.caption
-          elide: Text.ElideMiddle
-        }
-      }
-
-      PanelActionButton {
-        iconText: "󰆏"
-        foreground: root.foreground
-        fontFamily: root.fontFamily
-        enabled: copyRow.value !== ""
-        Layout.alignment: Qt.AlignVCenter
-        onClicked: vpn.copyToClipboard(copyRow.value)
       }
     }
   }
