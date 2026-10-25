@@ -230,6 +230,9 @@ Item {
   function disconnect() {
     if (!installed || actionProcess.running) return
     _desired = 0
+    // A probe launched before this click can still report the port up;
+    // user intent wins until the next probe re-establishes the truth.
+    _listenerUp = false
     runAction([cliPath, "disconnect"], "Disconnecting…")
   }
 
