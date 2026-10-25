@@ -7,7 +7,9 @@ proxy (`127.0.0.1:1080`) that only explicitly configured apps use.
 
 ## Features
 
-- Shield icon in the bar: bright + checked when connected, dim when disconnected
+- Shield icon in the bar: outline shield with Wi-Fi waves and a VPN label;
+  bright when connected, dim when disconnected (panel hero tints the waves and
+  label with the theme accent while connected)
 - Left-click opens the panel, right-click toggles the VPN, middle-click refreshes
 - Panel shows status, location, mode, and the SOCKS proxy address
 - Click-to-copy rows for the proxy URI and a curl test command
@@ -60,7 +62,9 @@ Layout follows the first-party plugins (`dropbox`, `tailscale` in
 - `manifest.json` — plugin metadata and settings schema
 - `Model.js` — pure parsing of CLI output (ANSI stripping, status/config)
 - `Service.qml` — process wrappers, polling, optimistic toggle, watchdogs
-- `AdguardIcon.qml` — native shield via `QtQuick.Shapes`
+- `AdguardIcon.qml` — native outline shield with Wi-Fi waves + VPN label via
+  `QtQuick.Shapes`; `outlineColor` for the shield, `contentColor` for waves and
+  label (pass the theme accent while connected for a colored interior)
 - `Panel.qml` — bar button + popup
 
 Gotchas learned the hard way:

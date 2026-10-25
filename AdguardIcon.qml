@@ -7,17 +7,24 @@ Item {
   id: root
 
   property real iconSize: Style.font.icon
-  property color color: Commons.Color.foreground
-  property color checkColor: Commons.Color.popups.background
-  property bool checked: false
+  property color outlineColor: Commons.Color.foreground // shield outline
+  property color contentColor: Commons.Color.foreground // waves, dot, VPN label
+  property string fontFamily: Style.font.family
 
   width: iconSize * 0.92
   height: iconSize
   implicitWidth: width
   implicitHeight: height
 
-  // AdGuard-style shield drawn natively (like the Dropbox diamond) so the
-  // tiny bar slot stays crisp without SVG rendering quirks.
+  // Geometry: outline shield, Wi-Fi waves + dot in the upper third,
+  // VPN label in the wide middle band. All coordinates relative so the
+  // icon scales from tiny bar slot to the large panel hero.
+  readonly property real waveBaseY: height * 0.42
+  readonly property real waveSide: 0.707 // sin/cos of 45° — half-span of each arc
+  readonly property real arcStroke: Math.max(0.9, width * 0.068)
+
+  // AdGuard-style shield silhouette drawn natively (like the Dropbox
+  // diamond) so the tiny bar slot stays crisp without SVG quirks.
   Shape {
     anchors.fill: parent
     antialiasing: true
@@ -25,30 +32,74 @@ Item {
     layer.samples: 4
 
     ShapePath {
-      fillColor: root.color
-      strokeColor: "transparent"
-      strokeWidth: 0
+      fillColor: "transparent"
+      strokeColor: root.outlineColor
+      strokeWidth: Math.max(1, root.width * 0.072)
+      joinStyle: ShapePath.RoundJoin
       startX: root.width * 0.5
-      startY: root.height * 0.04
-      PathLine { x: root.width * 0.94; y: root.height * 0.18 }
-      PathLine { x: root.width * 0.94; y: root.height * 0.46 }
-      PathQuad { controlX: root.width * 0.92; controlY: root.height * 0.80; x: root.width * 0.5; y: root.height * 0.97 }
-      PathQuad { controlX: root.width * 0.08; controlY: root.height * 0.80; x: root.width * 0.06; y: root.height * 0.46 }
-      PathLine { x: root.width * 0.06; y: root.height * 0.18 }
-      PathLine { x: root.width * 0.5; y: root.height * 0.04 }
+      startY: root.height * 0.075
+      PathLine { x: root.width * 0.93; y: root.height * 0.205 }
+      PathLine { x: root.width * 0.93; y: root.height * 0.46 }
+      PathQuad { controlX: root.width * 0.91; controlY: root.height * 0.79; x: root.width * 0.5; y: root.height * 0.945 }
+      PathQuad { controlX: root.width * 0.09; controlY: root.height * 0.79; x: root.width * 0.07; y: root.height * 0.46 }
+      PathLine { x: root.width * 0.07; y: root.height * 0.205 }
+      PathLine { x: root.width * 0.5; y: root.height * 0.075 }
     }
 
     ShapePath {
-      // ShapePath has no visible property — hide the check by unstroking it.
       fillColor: "transparent"
-      strokeColor: root.checked ? root.checkColor : "transparent"
-      strokeWidth: Math.max(1.2, root.width * 0.11)
+      strokeColor: root.contentColor
+      strokeWidth: root.arcStroke
       capStyle: ShapePath.RoundCap
-      joinStyle: ShapePath.RoundJoin
-      startX: root.width * 0.30
-      startY: root.height * 0.52
-      PathLine { x: root.width * 0.45; y: root.height * 0.66 }
-      PathLine { x: root.width * 0.72; y: root.height * 0.34 }
+      startX: root.width * 0.5 - root.waveSide * root.width * 0.13
+      startY: root.waveBaseY - root.waveSide * root.width * 0.13
+      PathArc {
+        x: root.width * 0.5 + root.waveSide * root.width * 0.13
+        y: root.waveBaseY - root.waveSide * root.width * 0.13
+        radiusX: root.width * 0.13
+        radiusY: root.width * 0.13
+        direction: PathArc.DirectionClockwise
+      }
     }
+
+    ShapePath {
+      fillColor: "transparent"
+      strokeColor: root.contentColor
+      strokeWidth: root.arcStroke
+      capStyle: ShapePath.RoundCap
+      startX: root.width * 0.5 - root.waveSide * root.width * 0.25
+      startY: root.waveBaseY - root.waveSide * root.width * 0.25
+      PathArc {
+        x: root.width * 0.5 + root.waveSide * root.width * 0.25
+        y: root.waveBaseY - root.waveSide * root.width * 0.25
+        radiusX: root.width * 0.25
+        radiusY: root.width * 0.25
+        direction: PathArc.DirectionClockwise
+      }
+    }
+  }
+
+  Rectangle {
+    width: root.width * 0.10
+    height: width
+    radius: width / 2
+    color: root.contentColor
+    anchors.horizontalCenter: parent.horizontalCenter
+    y: root.waveBaseY - width / 2
+  }
+
+  Text {
+    text: "VPN"
+    color: root.contentColor
+    font.family: root.fontFamily
+    font.pixelSize: root.width * 0.23
+    font.bold: true
+    font.letterSpacing: root.width * 0.02
+    fontSizeMode: Text.HorizontalFit
+    minimumPixelSize: 4
+    anchors.horizontalCenter: parent.horizontalCenter
+    y: root.height * 0.52
+    width: root.width * 0.64
+    horizontalAlignment: Text.AlignHCenter
   }
 }

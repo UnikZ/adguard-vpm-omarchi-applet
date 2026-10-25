@@ -62,7 +62,8 @@ Panel {
         AdguardIcon {
           anchors.centerIn: parent
           iconSize: Style.space(12)
-          color: root.barIconColor
+          outlineColor: root.barIconColor
+          contentColor: root.barIconColor
           opacity: vpn.active ? 1.0 : 0.6
         }
       }
@@ -123,8 +124,8 @@ Panel {
             iconComponent: Component {
               AdguardIcon {
                 iconSize: Style.font.display
-                color: root.iconColor
-                checked: vpn.running
+                outlineColor: root.iconColor
+                contentColor: vpn.active ? Commons.Color.accent : root.iconColor
               }
             }
             trailingControl: Component {
