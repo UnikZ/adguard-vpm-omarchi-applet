@@ -50,8 +50,6 @@ Panel {
     target: root.ipcTarget
     function open(): void { root.open() }
     function close(): void { root.close() }
-    function show(): void { root.open() }
-    function hide(): void { root.close() }
     function toggle(): void { root.toggle() }
     function refresh(): string { vpn.refresh(); return "ok" }
     function start(): string { vpn.connect(); return "ok" }
