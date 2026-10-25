@@ -64,6 +64,12 @@ function modeLabel(mode) {
   return "—"
 }
 
+// The same-city rule for both the idempotent-connect guard and the panel's
+// active-row highlight: CLI status reports uppercase, the table title-case.
+function sameCity(a, b) {
+  return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase()
+}
+
 // list-locations prints a fixed-width, ANSI-decorated table sorted by ping:
 //   ISO   COUNTRY              CITY                           PING ESTIMATE
 //   EE    Estonia              Tallinn                        3
@@ -91,5 +97,5 @@ function parseLocations(raw) {
 
 // Node-only export for tests; `module` is undefined under Quickshell.
 if (typeof module !== "undefined") {
-  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations }
+  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations, sameCity: sameCity }
 }

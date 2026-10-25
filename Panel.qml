@@ -29,7 +29,7 @@ Panel {
 
   function isActiveLocation(loc) {
     if (!loc || !vpn.running || vpn.location === "") return false
-    return String(loc.city).toLowerCase() === String(vpn.location).toLowerCase()
+    return Model.sameCity(loc.city, vpn.location)
   }
 
   implicitWidth: button.implicitWidth

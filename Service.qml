@@ -187,7 +187,7 @@ Item {
     if (!installed || actionProcess.running || target === "") return
     // Reconnecting to the city we're on bounces the tunnel and kills every
     // in-flight proxied connection — make that click a no-op instead.
-    if (running && String(location).toLowerCase() === target.toLowerCase()) {
+    if (running && Model.sameCity(location, target)) {
       actionStatus = "Already on " + target
       actionStatusTimer.restart()
       return

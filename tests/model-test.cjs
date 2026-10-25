@@ -55,6 +55,12 @@ test("modeLabel maps known modes", () => {
   assert.strictEqual(Model.modeLabel(""), "—")
 })
 
+test("sameCity matches across case and nulls", () => {
+  assert.strictEqual(Model.sameCity("VILNIUS", " Vilnius "), true)
+  assert.strictEqual(Model.sameCity("Vilnius", "Tallinn"), false)
+  assert.strictEqual(Model.sameCity(null, ""), true)
+})
+
 test("parseLocations slices the fixed-width table", () => {
   const raw = [
     "ISO   COUNTRY              CITY                           PING ESTIMATE",
