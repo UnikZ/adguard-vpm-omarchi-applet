@@ -30,6 +30,11 @@ Item {
   property var locations: [] // [{iso, country, city, ping}] sorted by ping
   property bool locationsRefreshing: false
 
+  // SOCKS-mode truth: `status` can report Disconnected in steady state while
+  // the proxy still accepts connections, so probe the listener and let a live
+  // socket outrank a stale status line.
+  property bool _listenerUp: false
+
   readonly property int refreshIntervalSec: intSetting("refreshIntervalSec", 10, 5, 3600)
   readonly property bool busy: checkProcess.running || statusProcess.running || configProcess.running || actionProcess.running || locationsProcess.running
 
@@ -57,6 +62,23 @@ Item {
 
   function proxyUri() {
     return proxyAddress !== "" ? "socks5://" + proxyAddress : ""
+  }
+
+  // bash /dev/tcp probe; `timeout` is its own watchdog so the poll watchdog
+  // does not need to reap it. Empty array = address unparseable, skip probe.
+  function listenerProbeCommand() {
+    var parts = String(proxyAddress).split(":")
+    if (parts.length !== 2) return []
+    var host = parts[0]
+    var port = parseInt(parts[1], 10)
+    if (!/^[0-9A-Za-z.]+$/.test(host) || !isFinite(port) || port <= 0 || port > 65535) return []
+    return ["timeout", "2", "bash", "-c", "exec 3<>/dev/tcp/" + host + "/" + port]
+  }
+
+  // A live SOCKS listener outranks a "disconnected" status line — unless a
+  // disconnect is pending, where user intent wins over the lingering socket.
+  function socksListenerUp() {
+    return mode === "socks" && _listenerUp && _desired !== 0
   }
 
   function copyToClipboard(value) {
@@ -95,6 +117,13 @@ Item {
       configProcess.running = true
       launched = true
     }
+    if (mode === "socks") {
+      var probe = listenerProbeCommand()
+      if (probe.length > 0 && !listenerProcess.running) {
+        listenerProcess.command = probe
+        listenerProcess.running = true
+      }
+    }
     // Reap polls that never exit (flaky network) so refreshes keep flowing.
     if (launched && !pollWatchdog.running) pollWatchdog.start()
   }
@@ -114,12 +143,14 @@ Item {
       lastError = parsed.message || "Failed to parse status"
       return
     }
-    running = parsed.connected
+    running = parsed.connected || socksListenerUp()
     // Reality caught up to the pending toggle — stop overriding.
     if (_desired !== -1 && running === (_desired === 1)) _desired = -1
-    location = parsed.location
+    // Keep the last known location while the listener override holds the
+    // connection up — the lying status line carries no location.
+    if (parsed.location !== "" || !socksListenerUp()) location = parsed.location
     warnings = parsed.warnings
-    if (parsed.connected) {
+    if (parsed.connected || socksListenerUp()) {
       statusText = "Connected"
       if (parsed.mode !== "") mode = parsed.mode
     } else {
@@ -280,6 +311,21 @@ Item {
         if (root.locations.length === 0) root.lastError = "No locations parsed"
       } else {
         root.lastError = Model.elide(stderr || stdout || "list-locations failed")
+      }
+    }
+  }
+
+  Process {
+    id: listenerProcess
+    running: false
+    command: []
+    onExited: function(exitCode) {
+      root._listenerUp = exitCode === 0
+      // Probe can land after the status line: apply the override here too.
+      if (!root.running && root.socksListenerUp()) {
+        root.running = true
+        root.statusText = "Connected"
+        root.lastError = ""
       }
     }
   }

@@ -19,6 +19,9 @@ proxy (`127.0.0.1:1080`) that only explicitly configured apps use.
 - Click-to-copy rows for the proxy URI and a curl test command
 - Optimistic toggle: the switch reacts instantly, status polls catch up
   (default every 10 s, configurable via `refreshIntervalSec` in the manifest)
+- SOCKS truth: in SOCKS mode a live listener probe (`/dev/tcp` connect)
+  outranks the CLI's `status` line, which can report Disconnected in steady
+  state while the proxy still works
 - No sudo needed in SOCKS mode — TUN mode requires root and is not the target here
 
 ## Install
