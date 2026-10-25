@@ -240,6 +240,7 @@ Item {
     actionStatus = label || ""
     actionProcess.command = command
     actionProcess.running = true
+    actionWatchdog.restart()
   }
 
   Timer {
@@ -267,6 +268,15 @@ Item {
       if (configProcess.running) configProcess.running = false
       if (locationsProcess.running) locationsProcess.running = false
     }
+  }
+
+  // Real connects take tens of seconds on flaky networks, so this reaps
+  // later than the poll watchdog; onExited treats the kill as a failure.
+  Timer {
+    id: actionWatchdog
+    interval: 45000
+    repeat: false
+    onTriggered: if (actionProcess.running) actionProcess.running = false
   }
 
   Timer {
