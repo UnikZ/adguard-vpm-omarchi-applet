@@ -11,7 +11,8 @@
 //   SOCKS port: 1080
 
 function stripAnsi(text) {
-  return String(text || "").replace(/\x1b\[[0-9;]*[A-Za-z]/g, "")
+  // [0-9;?]* also covers private-mode CSI (e.g. "\x1b[?25l" cursor hide)
+  return String(text || "").replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "")
 }
 
 function elide(text, limit) {
@@ -86,4 +87,9 @@ function parseLocations(raw) {
     })
   }
   return out
+}
+
+// Node-only export for tests; `module` is undefined under Quickshell.
+if (typeof module !== "undefined") {
+  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations }
 }
