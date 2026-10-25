@@ -107,7 +107,8 @@ test("parseLocations slices the fixed-width table", () => {
     "EE    Estonia              Tallinn                        3",
     "US    United States        New York                       42",
     "",
-    "short"
+    "short",
+    "You can connect to a location by running `/opt/adguardvpn_cli/adguardvpn-cli connect -l 'city'`"
   ].join("\n")
   const locs = Model.parseLocations(raw)
   assert.strictEqual(locs.length, 2)

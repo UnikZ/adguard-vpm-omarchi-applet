@@ -124,12 +124,16 @@ function parseLocations(raw) {
     var line = lines[i]
     if (/^\s*ISO\b/.test(line)) continue
     if (line.replace(/\s/g, "").length === 0 || line.length < 28) continue
+    // Only real table rows count: the CLI trails the table with a
+    // "connect by running ..." hint that is long enough to look like a row.
+    var iso = line.substring(0, 6).trim()
+    if (!/^[A-Z]{2}$/.test(iso)) continue
     var country = line.substring(6, 27).trim()
     var city = line.substring(27, 58).trim()
     if (city === "" || country === "") continue
     var ping = parseInt(line.substring(58).trim(), 10)
     out.push({
-      iso: line.substring(0, 6).trim(),
+      iso: iso,
       country: country,
       city: city,
       ping: isFinite(ping) ? ping : -1
