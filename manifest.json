@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "unikz.adguardvpn",
+  "name": "AdGuard VPN",
+  "version": "1.0.0",
+  "author": "unikz",
+  "license": "MIT",
+  "description": "AdGuard VPN CLI status and SOCKS toggle in the Omarchy bar.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "AdGuard VPN",
+    "description": "Toggle AdGuard VPN and show connection status, mode, and SOCKS proxy details.",
+    "category": "Network",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "refreshIntervalSec": 10
+    },
+    "schema": [
+      {
+        "key": "refreshIntervalSec",
+        "type": "integer",
+        "label": "Refresh interval (seconds)",
+        "min": 5,
+        "max": 3600,
+        "step": 5,
+        "defaultValue": 10
+      }
+    ]
+  }
+}

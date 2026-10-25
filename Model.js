@@ -1,0 +1,64 @@
+// Pure parsing helpers for AdGuard VPN CLI output. No QML dependencies so
+// every regex can be checked by eye against real CLI output:
+//
+// status (connected):
+//   Connected to VILNIUS in SOCKS mode, listening on 127.0.0.1:1080
+// status (disconnected):
+//   VPN is disconnected
+// config show:
+//   Mode: tun|socks
+//   SOCKS host: 127.0.0.1
+//   SOCKS port: 1080
+
+function stripAnsi(text) {
+  return String(text || "").replace(/\x1b\[[0-9;]*[A-Za-z]/g, "")
+}
+
+function elide(text, limit) {
+  var value = stripAnsi(text).replace(/\s+/g, " ").trim()
+  var max = limit || 140
+  return value.length > max ? value.substring(0, max - 1) + "…" : value
+}
+
+function parseStatus(raw) {
+  var lines = stripAnsi(raw).split(/\r?\n/)
+  var headline = ""
+  var warnings = []
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim()
+    if (line === "") continue
+    if (headline === "") headline = line
+    else if (/warning/i.test(line)) warnings.push(line)
+  }
+  if (/^Connected to\b/i.test(headline)) {
+    var match = headline.match(/^Connected to\s+(.+?)(?:\s+in\s+(SOCKS|TUN)\s+mode)?(?:\s*,?\s*listening on\s+(\S+))?$/i)
+    var location = match ? String(match[1] || "").trim() : headline.replace(/^Connected to\s+/i, "").split(/\s+in\s+/)[0]
+    return {
+      ok: true,
+      connected: true,
+      location: location,
+      mode: match ? String(match[2] || "").toLowerCase() : "",
+      listen: match ? String(match[3] || "").trim() : "",
+      warnings: warnings
+    }
+  }
+  if (/disconnected/i.test(headline)) {
+    return { ok: true, connected: false, location: "", mode: "", listen: "", warnings: warnings }
+  }
+  return { ok: false, connected: false, location: "", mode: "", listen: "", warnings: warnings, message: elide(headline) || "Unknown status" }
+}
+
+function parseConfig(raw) {
+  var text = stripAnsi(raw)
+  var mode = (text.match(/^\s*Mode:\s*(\S+)/m) || [])[1] || ""
+  var host = (text.match(/^\s*SOCKS host:\s*(\S+)/m) || [])[1] || "127.0.0.1"
+  var port = (text.match(/^\s*SOCKS port:\s*(\d+)/m) || [])[1] || "1080"
+  return { mode: mode.toLowerCase(), proxyAddress: host + ":" + port }
+}
+
+function modeLabel(mode) {
+  var value = String(mode || "").toLowerCase()
+  if (value === "socks") return "SOCKS"
+  if (value === "tun") return "TUN"
+  return "—"
+}
