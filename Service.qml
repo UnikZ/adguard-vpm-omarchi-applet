@@ -45,6 +45,7 @@ Item {
 
   property string _statusOutput: ""
   property string _statusError: ""
+  property int _pollCount: 0
   property string _configOutput: ""
   property string _configError: ""
   property string _actionOutput: ""
@@ -100,6 +101,7 @@ Item {
 
   function refreshStatusAndConfig() {
     if (!installed) return
+    _pollCount += 1
     var launched = false
     if (!statusProcess.running) {
       _statusOutput = ""
@@ -109,7 +111,9 @@ Item {
       statusProcess.running = true
       launched = true
     }
-    if (!configProcess.running) {
+    if (!configProcess.running && _pollCount % 6 === 1) {
+      // Config is near-static (hand-edited CLI settings); status carries the
+      // freshness. First poll and then roughly once a minute.
       _configOutput = ""
       _configError = ""
       configProcess.command = [cliPath, "config", "show"]
