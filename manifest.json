@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "unikz.adguardvpn",
   "name": "AdGuard VPN",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "unikz",
   "license": "MIT",
   "description": "AdGuard VPN CLI status and SOCKS toggle in the Omarchy bar.",
