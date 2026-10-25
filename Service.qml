@@ -185,6 +185,13 @@ Item {
   function connectTo(city) {
     var target = String(city || "")
     if (!installed || actionProcess.running || target === "") return
+    // Reconnecting to the city we're on bounces the tunnel and kills every
+    // in-flight proxied connection — make that click a no-op instead.
+    if (running && String(location).toLowerCase() === target.toLowerCase()) {
+      actionStatus = "Already on " + target
+      actionStatusTimer.restart()
+      return
+    }
     _desired = 1
     runAction([cliPath, "connect", "-y", "--no-progress", "-l", target], "Connecting to " + target + "…")
   }
