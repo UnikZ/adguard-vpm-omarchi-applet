@@ -40,8 +40,15 @@ omarchy-shell unikz.adguardvpn open     # open the panel
 
 ## Development
 
-Edits under this directory hot-reload into the running shell; if a change
-doesn't apply, `omarchy restart shell`. Plugin load errors land in the journal:
+Edits here do **not** hot-reload while the plugin is installed via symlink —
+Quickshell's change watcher does not follow the symlinked directory. Apply
+changes with:
+
+```bash
+omarchy restart shell
+```
+
+Plugin load errors land in the journal:
 
 ```bash
 journalctl --user -t omarchy-shell -f
