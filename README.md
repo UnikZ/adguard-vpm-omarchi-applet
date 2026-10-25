@@ -1,4 +1,4 @@
-# omarchy-adguardvpn
+# AdGuard VPN applet for Omarchy
 
 An [Omarchy](https://omarchy.org) shell bar widget for controlling
 [AdGuard VPN CLI](https://adguard-vpn.com/kb/adguard-vpn-for-linux/) — a shield
@@ -24,10 +24,11 @@ proxy (`127.0.0.1:1080`) that only explicitly configured apps use.
 ## Install
 
 The Omarchy shell only discovers plugins under `~/.config/omarchy/plugins/`, so
-install by symlinking this checkout:
+install by cloning and symlinking:
 
 ```bash
-ln -s "$PWD" ~/.config/omarchy/plugins/unikz.adguardvpn
+git clone git@github.com:UnikZ/adguard-vpn-omarchy-applet.git
+ln -s "$PWD/adguard-vpn-omarchy-applet" ~/.config/omarchy/plugins/unikz.adguardvpn
 omarchy plugin enable unikz.adguardvpn
 omarchy restart shell
 ```
