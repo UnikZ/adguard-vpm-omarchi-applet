@@ -64,6 +64,18 @@ function modeLabel(mode) {
   return "—"
 }
 
+// Command that exits 0 when the SOCKS listener accepts connections, or null
+// when the address is not a safe host:port. bash /dev/tcp does the probing;
+// `timeout` is the probe's own watchdog.
+function listenProbe(hostPort) {
+  var parts = String(hostPort || "").split(":")
+  if (parts.length !== 2) return null
+  var host = parts[0]
+  var port = parseInt(parts[1], 10)
+  if (!/^[0-9A-Za-z.]+$/.test(host) || !isFinite(port) || port <= 0 || port > 65535) return null
+  return ["timeout", "2", "bash", "-c", "exec 3<>/dev/tcp/" + host + "/" + port]
+}
+
 // The same-city rule for both the idempotent-connect guard and the panel's
 // active-row highlight: CLI status reports uppercase, the table title-case.
 function sameCity(a, b) {
@@ -97,5 +109,5 @@ function parseLocations(raw) {
 
 // Node-only export for tests; `module` is undefined under Quickshell.
 if (typeof module !== "undefined") {
-  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations, sameCity: sameCity }
+  module.exports = { stripAnsi: stripAnsi, elide: elide, parseStatus: parseStatus, parseConfig: parseConfig, modeLabel: modeLabel, parseLocations: parseLocations, sameCity: sameCity, listenProbe: listenProbe }
 }

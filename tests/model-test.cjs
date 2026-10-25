@@ -61,6 +61,17 @@ test("sameCity matches across case and nulls", () => {
   assert.strictEqual(Model.sameCity(null, ""), true)
 })
 
+test("listenProbe builds the /dev/tcp probe and rejects unsafe addresses", () => {
+  assert.deepStrictEqual(Model.listenProbe("127.0.0.1:1080"), [
+    "timeout", "2", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/1080"
+  ])
+  assert.strictEqual(Model.listenProbe("127.0.0.1"), null)
+  assert.strictEqual(Model.listenProbe("evil`host:1080"), null)
+  assert.strictEqual(Model.listenProbe("127.0.0.1:0"), null)
+  assert.strictEqual(Model.listenProbe("127.0.0.1:70000"), null)
+  assert.strictEqual(Model.listenProbe(""), null)
+})
+
 test("parseLocations slices the fixed-width table", () => {
   const raw = [
     "ISO   COUNTRY              CITY                           PING ESTIMATE",

@@ -69,15 +69,9 @@ Item {
     return proxyAddress !== "" ? "socks5://" + proxyAddress : ""
   }
 
-  // bash /dev/tcp probe; `timeout` is its own watchdog so the poll watchdog
-  // does not need to reap it. Empty array = address unparseable, skip probe.
+  // bash /dev/tcp probe of the SOCKS listener; see Model.listenProbe.
   function listenerProbeCommand() {
-    var parts = String(proxyAddress).split(":")
-    if (parts.length !== 2) return []
-    var host = parts[0]
-    var port = parseInt(parts[1], 10)
-    if (!/^[0-9A-Za-z.]+$/.test(host) || !isFinite(port) || port <= 0 || port > 65535) return []
-    return ["timeout", "2", "bash", "-c", "exec 3<>/dev/tcp/" + host + "/" + port]
+    return Model.listenProbe(proxyAddress)
   }
 
   // A live SOCKS listener outranks a "disconnected" status line — unless a
@@ -124,7 +118,7 @@ Item {
     }
     if (mode === "socks") {
       var probe = listenerProbeCommand()
-      if (probe.length > 0 && !listenerProcess.running) {
+      if (probe !== null && !listenerProcess.running) {
         listenerProcess.command = probe
         listenerProcess.running = true
       }
