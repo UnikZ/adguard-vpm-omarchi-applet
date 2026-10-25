@@ -15,10 +15,9 @@ function stripAnsi(text) {
   return String(text || "").replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "")
 }
 
-function elide(text, limit) {
+function elide(text) {
   var value = stripAnsi(text).replace(/\s+/g, " ").trim()
-  var max = limit || 140
-  return value.length > max ? value.substring(0, max - 1) + "…" : value
+  return value.length > 140 ? value.substring(0, 139) + "…" : value
 }
 
 function parseStatus(raw) {
