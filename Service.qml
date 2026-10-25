@@ -27,9 +27,11 @@ Item {
   property var warnings: []
   property string actionStatus: ""
   property string lastError: ""
+  property var locations: [] // [{iso, country, city, ping}] sorted by ping
+  property bool locationsRefreshing: false
 
   readonly property int refreshIntervalSec: intSetting("refreshIntervalSec", 10, 5, 3600)
-  readonly property bool busy: checkProcess.running || statusProcess.running || configProcess.running || actionProcess.running
+  readonly property bool busy: checkProcess.running || statusProcess.running || configProcess.running || actionProcess.running || locationsProcess.running
 
   property string _statusOutput: ""
   property string _statusError: ""
@@ -37,6 +39,8 @@ Item {
   property string _configError: ""
   property string _actionOutput: ""
   property string _actionError: ""
+  property string _locationsOutput: ""
+  property string _locationsError: ""
 
   function setting(name, fallback) {
     var value = settings ? settings[name] : undefined
@@ -142,6 +146,30 @@ Item {
     runAction([cliPath, "connect", "-y", "--no-progress"], "Connecting…")
   }
 
+  function connectTo(city) {
+    var target = String(city || "")
+    if (!installed || actionProcess.running || target === "") return
+    _desired = 1
+    runAction([cliPath, "connect", "-y", "--no-progress", "-l", target], "Connecting to " + target + "…")
+  }
+
+  function connectFastest() {
+    if (!installed || actionProcess.running) return
+    _desired = 1
+    runAction([cliPath, "connect", "-y", "--no-progress", "-f"], "Connecting to the fastest location…")
+  }
+
+  // Ping estimates come from live measurement, so fetch on panel open and
+  // explicit refresh only — never on the periodic status poll.
+  function refreshLocations() {
+    if (!installed || locationsProcess.running) return
+    _locationsOutput = ""
+    _locationsError = ""
+    locationsRefreshing = true
+    locationsProcess.command = [cliPath, "list-locations"]
+    locationsProcess.running = true
+  }
+
   function disconnect() {
     if (!installed || actionProcess.running) return
     _desired = 0
@@ -180,6 +208,7 @@ Item {
     onTriggered: {
       if (statusProcess.running) statusProcess.running = false
       if (configProcess.running) configProcess.running = false
+      if (locationsProcess.running) locationsProcess.running = false
     }
   }
 
@@ -233,6 +262,25 @@ Item {
       var stderr = String(configStderr.text || root._configError || "")
       if (exitCode === 0) root.applyConfig(stdout)
       else if (root.proxyAddress === "") root.lastError = Model.elide(stderr || stdout || "Config command failed")
+    }
+  }
+
+  Process {
+    id: locationsProcess
+    running: false
+    command: []
+    stdout: StdioCollector { id: locationsStdout; waitForEnd: true; onStreamFinished: root._locationsOutput = text }
+    stderr: StdioCollector { id: locationsStderr; waitForEnd: true; onStreamFinished: root._locationsError = text }
+    onExited: function(exitCode) {
+      root.locationsRefreshing = false
+      var stdout = String(locationsStdout.text || root._locationsOutput || "")
+      var stderr = String(locationsStderr.text || root._locationsError || "")
+      if (exitCode === 0) {
+        root.locations = Model.parseLocations(stdout)
+        if (root.locations.length === 0) root.lastError = "No locations parsed"
+      } else {
+        root.lastError = Model.elide(stderr || stdout || "list-locations failed")
+      }
     }
   }
 

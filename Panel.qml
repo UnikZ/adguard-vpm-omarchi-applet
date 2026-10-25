@@ -27,11 +27,17 @@ Panel {
     if (vpn.installed && !vpn.busy) vpn.toggle()
   }
 
+  function isActiveLocation(loc) {
+    if (!loc || !vpn.running || vpn.location === "") return false
+    return String(loc.city).toLowerCase() === String(vpn.location).toLowerCase()
+  }
+
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
 
   onOpenedChanged: if (opened) {
     vpn.refresh()
+    vpn.refreshLocations()
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })
   }
 
@@ -50,6 +56,8 @@ Panel {
     function refresh(): string { vpn.refresh(); return "ok" }
     function start(): string { vpn.connect(); return "ok" }
     function stop(): string { vpn.disconnect(); return "ok" }
+    function connectTo(city: string): string { vpn.connectTo(city); return "ok" }
+    function fastest(): string { vpn.connectFastest(); return "ok" }
     function status(): string { return vpn.statusText }
   }
 
@@ -83,7 +91,7 @@ Panel {
     open: root.opened
     focusTarget: keyCatcher
     contentWidth: panel.fittedContentWidth(Style.space(380))
-    contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(400))
+    contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(560))
 
     PanelKeyCatcher {
       id: keyCatcher
@@ -93,8 +101,9 @@ Panel {
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) {
-        if (t === "r" || t === "R") vpn.refresh()
+        if (t === "r" || t === "R") { vpn.refresh(); vpn.refreshLocations() }
         else if (t === "t" || t === "T") root.toggleVpn()
+        else if (t === "f" || t === "F") vpn.connectFastest()
       }
 
       Flickable {
@@ -180,6 +189,65 @@ Panel {
           }
 
           PanelSeparator {
+            visible: vpn.installed
+            foreground: root.foreground
+          }
+
+          Column {
+            visible: vpn.installed
+            width: parent.width
+            spacing: Style.space(10)
+
+            PanelSectionHeader {
+              text: "LOCATIONS"
+              foreground: root.foreground
+              fontFamily: root.fontFamily
+            }
+
+            Text {
+              textFormat: Text.PlainText
+              visible: vpn.locationsRefreshing && vpn.locations.length === 0
+              width: parent.width
+              text: "Measuring pings…"
+              color: root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.body
+              horizontalAlignment: Text.AlignHCenter
+            }
+
+            LocationRow {
+              width: parent.width
+              city: "Fastest"
+              country: "Lowest ping estimate"
+              ping: -1
+              isActive: false
+              enabled: !vpn.busy
+              glyph: ""
+              onChoose: vpn.connectFastest()
+            }
+
+            Column {
+              width: parent.width
+              spacing: Style.space(6)
+
+              Repeater {
+                model: vpn.locations
+
+                LocationRow {
+                  required property var modelData
+                  width: parent.width
+                  city: modelData.city
+                  country: modelData.country
+                  ping: modelData.ping
+                  isActive: root.isActiveLocation(modelData)
+                  enabled: !vpn.busy
+                  onChoose: vpn.connectTo(modelData.city)
+                }
+              }
+            }
+          }
+
+          PanelSeparator {
             visible: vpn.installed && root.socksMode
             foreground: root.foreground
           }
@@ -220,6 +288,93 @@ Panel {
             }
           }
         }
+      }
+    }
+  }
+
+  component LocationRow: CursorSurface {
+    id: locationRow
+
+    property string city: ""
+    property string country: ""
+    property int ping: -1
+    property bool isActive: false
+    property string glyph: ""
+    signal choose()
+
+    foreground: root.foreground
+
+    implicitHeight: locationContent.implicitHeight + Style.spacing.rowPaddingX
+
+    MouseArea {
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: parent.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+      onClicked: if (parent.enabled) locationRow.choose()
+    }
+
+    RowLayout {
+      id: locationContent
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      anchors.leftMargin: Style.space(10)
+      anchors.rightMargin: Style.space(10)
+      spacing: Style.space(8)
+
+      Text {
+        visible: locationRow.glyph !== ""
+        text: locationRow.glyph
+        color: root.foreground
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.icon
+        Layout.alignment: Qt.AlignVCenter
+      }
+
+      ColumnLayout {
+        Layout.fillWidth: true
+        spacing: Style.space(1)
+
+        Text {
+          textFormat: Text.PlainText
+          Layout.fillWidth: true
+          text: locationRow.city
+          color: locationRow.isActive ? Commons.Color.accent : root.foreground
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.body
+          font.bold: locationRow.isActive
+          elide: Text.ElideRight
+        }
+
+        Text {
+          textFormat: Text.PlainText
+          Layout.fillWidth: true
+          text: locationRow.country
+          color: root.dim
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.caption
+          elide: Text.ElideRight
+        }
+      }
+
+      Text {
+        textFormat: Text.PlainText
+        visible: locationRow.ping >= 0
+        text: locationRow.ping + " ms"
+        color: root.dim
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.caption
+        Layout.alignment: Qt.AlignVCenter
+      }
+
+      Text {
+        textFormat: Text.PlainText
+        visible: locationRow.isActive
+        text: "●"
+        color: Commons.Color.accent
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.caption
+        Layout.alignment: Qt.AlignVCenter
       }
     }
   }

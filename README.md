@@ -12,6 +12,10 @@ proxy (`127.0.0.1:1080`) that only explicitly configured apps use.
   with the theme accent while connected)
 - Left-click opens the panel, right-click toggles the VPN, middle-click refreshes
 - Panel shows status, location, mode, and the SOCKS proxy address
+- Location picker: `list-locations` ping estimates sorted fastest-first,
+  click a city (or the pinned "Fastest" row / press `f`) to connect; pings
+  are live-measured, so the list refreshes on panel open and `r`, not on
+  the status poll
 - Click-to-copy rows for the proxy URI and a curl test command
 - Optimistic toggle: the switch reacts instantly, status polls catch up
   (default every 10 s, configurable via `refreshIntervalSec` in the manifest)
@@ -37,6 +41,8 @@ Requires the AdGuard VPN CLI at `/opt/adguardvpn_cli/adguardvpn-cli`
 omarchy-shell unikz.adguardvpn status   # Connected | Disconnected | …
 omarchy-shell unikz.adguardvpn start    # connect the VPN
 omarchy-shell unikz.adguardvpn stop     # disconnect the VPN
+omarchy-shell unikz.adguardvpn connectTo <city>  # connect to a specific location
+omarchy-shell unikz.adguardvpn fastest   # connect to the lowest-ping location
 omarchy-shell unikz.adguardvpn open     # open the panel
 ```
 

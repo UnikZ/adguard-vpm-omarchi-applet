@@ -62,3 +62,28 @@ function modeLabel(mode) {
   if (value === "tun") return "TUN"
   return "—"
 }
+
+// list-locations prints a fixed-width, ANSI-decorated table sorted by ping:
+//   ISO   COUNTRY              CITY                           PING ESTIMATE
+//   EE    Estonia              Tallinn                        3
+// Column offsets: ISO 0-5, COUNTRY 6-26, CITY 27-57, PING 58+.
+function parseLocations(raw) {
+  var lines = stripAnsi(raw).split(/\r?\n/)
+  var out = []
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i]
+    if (/^\s*ISO\b/.test(line)) continue
+    if (line.replace(/\s/g, "").length === 0 || line.length < 28) continue
+    var country = line.substring(6, 27).trim()
+    var city = line.substring(27, 58).trim()
+    if (city === "" || country === "") continue
+    var ping = parseInt(line.substring(58).trim(), 10)
+    out.push({
+      iso: line.substring(0, 6).trim(),
+      country: country,
+      city: city,
+      ping: isFinite(ping) ? ping : -1
+    })
+  }
+  return out
+}
