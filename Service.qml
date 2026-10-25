@@ -19,7 +19,6 @@ Item {
   // state, 0/1 hold until the action's refresh catches up.
   property int _desired: -1
   readonly property bool active: _desired === -1 ? running : (_desired === 1)
-  property bool refreshing: false
   property string statusText: "Checking…"
   property string location: ""
   property string mode: "" // socks | tun | "" unknown
@@ -93,7 +92,6 @@ Item {
       return
     }
     if (!checkProcess.running) {
-      refreshing = true
       checkProcess.command = ["bash", "-c", "test -x " + Util.shellQuote(cliPath)]
       checkProcess.running = true
     }
@@ -106,7 +104,6 @@ Item {
     if (!statusProcess.running) {
       _statusOutput = ""
       _statusError = ""
-      refreshing = true
       statusProcess.command = [cliPath, "status"]
       statusProcess.running = true
       launched = true
@@ -294,10 +291,7 @@ Item {
     onExited: function(exitCode) {
       root.installed = exitCode === 0
       if (root.installed) root.refreshStatusAndConfig()
-      else {
-        root.refreshing = false
-        root.resetUnavailable("Not installed")
-      }
+      else root.resetUnavailable("Not installed")
     }
   }
 
@@ -308,7 +302,6 @@ Item {
     stdout: StdioCollector { id: statusStdout; waitForEnd: true; onStreamFinished: root._statusOutput = text }
     stderr: StdioCollector { id: statusStderr; waitForEnd: true; onStreamFinished: root._statusError = text }
     onExited: function(exitCode) {
-      root.refreshing = false
       var stdout = String(statusStdout.text || root._statusOutput || "")
       var stderr = String(statusStderr.text || root._statusError || "")
       if (exitCode === 0) root.parseStatus(stdout)
