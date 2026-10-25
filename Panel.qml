@@ -214,15 +214,34 @@ Panel {
               fontFamily: root.fontFamily
             }
 
-            Text {
-              textFormat: Text.PlainText
+            Row {
               visible: vpn.locationsRefreshing && vpn.locations.length === 0
-              width: parent.width
-              text: "Measuring pings…"
-              color: root.dim
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.body
-              horizontalAlignment: Text.AlignHCenter
+              anchors.horizontalCenter: parent.horizontalCenter
+              spacing: Style.space(6)
+
+              Text {
+                text: "◔"
+                color: root.dim
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.icon
+                // House spinner pattern, cf. Ui/Button.qml iconSpinning.
+                RotationAnimation on rotation {
+                  from: 0
+                  to: 360
+                  duration: 900
+                  loops: Animation.Infinite
+                  running: parent.visible
+                }
+              }
+
+              Text {
+                textFormat: Text.PlainText
+                text: "Measuring pings…"
+                color: root.dim
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.body
+                anchors.verticalCenter: parent.verticalCenter
+              }
             }
 
             LocationRow {
