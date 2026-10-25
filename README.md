@@ -77,7 +77,8 @@ Layout follows the first-party plugins (`dropbox`, `tailscale` in
 `/usr/share/omarchy/shell/plugins/panels/`):
 
 - `manifest.json` — plugin metadata and settings schema
-- `Model.js` — pure parsing of CLI output (ANSI stripping, status/config)
+- `Model.js` — pure parsing of CLI output (ANSI stripping, status/config);
+  covered by `node --test tests/`
 - `Service.qml` — process wrappers, polling, optimistic toggle, watchdogs
 - `AdguardIcon.qml` — native outline shield with Wi-Fi waves and a dot via
   `QtQuick.Shapes`; `outlineColor` for the shield, `contentColor` for waves
