@@ -23,6 +23,10 @@ Panel {
   readonly property color barIconColor: vpn.active ? barForeground : Qt.darker(barForeground, 1.55)
   readonly property bool socksMode: vpn.mode === "socks"
 
+  // Locations render in chunks as you scroll; ping-sorted means anything
+  // worth clicking is near the top anyway. Reset on every panel open.
+  property int locationLimit: 20
+
   function toggleVpn() {
     if (vpn.installed && !vpn.busy) vpn.toggle()
   }
@@ -38,6 +42,7 @@ Panel {
   onOpenedChanged: if (opened) {
     vpn.refresh()
     vpn.refreshLocations()
+    locationLimit = 20
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })
   }
 
@@ -114,6 +119,13 @@ Panel {
         flickableDirection: Flickable.VerticalFlick
         interactive: contentHeight > height
         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+        // Reaching the bottom grows the catalog by one chunk; unseen rows
+        // never instantiate, so 80 locations cost 20 delegates until asked.
+        onAtYEndChanged: if (atYEnd) {
+          var total = vpn.catalogLocations.length
+          if (locationLimit < total) locationLimit = Math.min(locationLimit + 20, total)
+        }
 
         Column {
           id: column
@@ -252,7 +264,7 @@ Panel {
               spacing: Style.space(6)
 
               Repeater {
-                model: vpn.catalogLocations
+                model: vpn.catalogLocations.slice(0, locationLimit)
 
                 LocationRow {
                   required property var modelData
